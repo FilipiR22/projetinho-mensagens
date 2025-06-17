@@ -16,5 +16,13 @@ const Mensagens = sequelize.define('Mensagem', {
     timestamps: false,
 });
 
+// Corrigir o nome da constante e do método associate
+Mensagens.associate = (models) => {
+    Mensagens.belongsTo(models.Usuario, {
+        foreignKey: 'userId',
+        as: 'user',
+    });
+};
+
 
 module.exports = Mensagens;

@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Mensagens = require('../models/mensagens');
-const auth = require('../middlewares/auth'); // importa o autenticador
+const auth = require('../middlewares/auth');
 
-// Protege todas as rotas abaixo com o middleware de autenticação
 router.use(auth);
 
 // GET todas as mensagens

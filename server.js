@@ -1,7 +1,7 @@
 const express = require('express');
 const sequelize = require('./database');
-const mensagensRouter = require('./routes/Mensagem');
-const usuarioRouter = require('./routes/Usuario');
+const mensagensRouter = require('./routes/mensagens');
+const usuarioRouter = require('./routes/usuario');
 const erroMiddleware = require('./middlewares/erroMiddleware');
 
 const app = express();

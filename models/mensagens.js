@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
+const models = require('../models');
 
-const Mensagens = sequelize.define('Mensagem', {
+const Mensagens = sequelize.define('Mensagens', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -15,8 +16,6 @@ const Mensagens = sequelize.define('Mensagem', {
 }, {
     timestamps: false,
 });
-
-// Corrigir o nome da constante e do método associate
 Mensagens.associate = (models) => {
     Mensagens.belongsTo(models.Usuario, {
         foreignKey: 'userId',

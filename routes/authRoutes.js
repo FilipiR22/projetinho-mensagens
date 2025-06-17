@@ -1,6 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const usuario = require('../models/usuario');
 const router = express.Router();
 
 // Registrar novo usuário
@@ -8,11 +8,11 @@ router.post('/register', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const exists = await User.findOne({ where: { email } });
+        const exists = await usuario.findOne({ where: { email } });
         if (exists) return res.status(400).json({ error: 'Email já cadastrado' });
 
-        const user = await User.create({ email, password });
-        return res.status(201).json({ id: user.id, email: user.email });
+        const usuario = await usuario.create({ email, password });
+        return res.status(201).json({ id: usuario.id, email: usuario.email });
     } catch (err) {
         return res.status(500).json({ error: 'Erro ao registrar' });
     }
@@ -23,17 +23,17 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        const user = await User.findOne({ where: { email } });
-        if (!user || !(await user.checkPassword(password))) {
+        const usuario = await usuario.findOne({ where: { email } });
+        if (!usuario || !(await usuario.checkPassword(password))) {
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }
 
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ id: usuario.id }, process.env.JWT_SECRET, {
             expiresIn: process.env.JWT_EXPIRES_IN
         });
 
         return res.json({
-            user: { id: user.id, email: user.email },
+            usuario: { id: usuario.id, email: usuario.email },
             token
         });
     } catch (err) {

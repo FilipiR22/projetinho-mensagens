@@ -1,6 +1,6 @@
 const express = require('express');
 const sequelize = require('./database');
-const mensagensRouter = require('./routes/Mensagem');
+const mensagensRouter = require('./routes/mensagens');
 const usuarioRouter = require('./routes/Usuario');
 const erroMiddleware = require('./middlewares/erroMiddleware');
 require('./models'); // Garante associações

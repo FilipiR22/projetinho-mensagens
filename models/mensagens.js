@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
+const Usuario = require('./usuario');
 
-const Mensagens = sequelize.define('Mensagem', {
+const Mensagens = sequelize.define('Mensagens', { // Corrija aqui para plural
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -12,7 +13,7 @@ const Mensagens = sequelize.define('Mensagem', {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    usuarioId: { // Adicionado para relação
+    idusuario: {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
@@ -20,5 +21,6 @@ const Mensagens = sequelize.define('Mensagem', {
     timestamps: false,
 });
 
+Mensagens.belongsTo(Usuario, { foreignKey: 'idusuario' });
 
 module.exports = Mensagens;

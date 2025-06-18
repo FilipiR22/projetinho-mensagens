@@ -1,26 +1,30 @@
 const express = require('express');
 const sequelize = require('./database');
-const mensagensRouter = require('./routes/mensagens');
-const usuarioRouter = require('./routes/Usuario');
-const erroMiddleware = require('./middlewares/erroMiddleware');
-require('./models'); // Garante associações
-const jwt = require('jsonwebtoken');
+const mensagemRoutes = require('./routes/mensagem');
+const usuarioRoutes = require('./routes/usuario');
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middlewares/authMiddleware');
+const path = require('path'); // Adicione esta linha
 
 const app = express();
+app.use(express.json());
+
+app.use('/mensagens', authMiddleware, mensagemRoutes);
+app.use('/usuario', usuarioRoutes);
+app.use('/login', authRoutes);
+
+app.use(express.static(path.join(__dirname, 'public'))); // Adicione esta linha
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 const PORT = 3000;
 
-app.use(express.json());
-app.use('/mensagens', mensagensRouter);
-app.use('/usuario', usuarioRouter);
-app.use(erroMiddleware);
-
-
-sequelize.sync().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Servidor rodando em http://localhost:${PORT}`);
+sequelize.sync()
+    .then(() => {
+        app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+    })
+    .catch((err) => {
+        console.error('Erro ao sincronizar o banco de dados:', err);
     });
-});
-
-const token = jwt.sign({ id: usuarioEncontrado.id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
-});

@@ -9,7 +9,13 @@ router.use(auth);
 router.get('/', async (req, res, next) => {
     try {
         const mensagens = await Mensagens.findAll();
-        res.json(mensagens);
+        // Mapeia para content
+        const mapped = mensagens.map(m => ({
+            id: m.id,
+            content: m.conteudo,
+            userId: m.userId // ajuste se necessário
+        }));
+        res.json(mapped);
     } catch (error) {
         next(error);
     }
@@ -34,7 +40,7 @@ router.get('/:id', async (req, res, next) => {
 // POST nova mensagem
 router.post('/', async (req, res, next) => {
     try {
-        const { conteudo } = req.body;
+        const conteudo = req.body.content || req.body.conteudo;
 
         if (!conteudo || conteudo.trim() === '') {
             const err = new Error('O conteúdo da mensagem é obrigatório e não pode estar vazio.');
@@ -42,7 +48,7 @@ router.post('/', async (req, res, next) => {
             throw err;
         }
 
-        const novaMensagem = await Mensagens.create({ conteudo });
+        const novaMensagem = await Mensagens.create({ conteudo, userId: req.user.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
         next(error);

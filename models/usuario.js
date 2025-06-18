@@ -24,5 +24,10 @@ const Usuario = sequelize.define('Usuario', {
     timestamps: false,
 });
 
+// Método de instância para checar a senha
+Usuario.prototype.checkPassword = function (senhaInformada) {
+    // Para produção, use hash (bcrypt). Aqui é comparação simples.
+    return this.senha === senhaInformada;
+};
 
 module.exports = Usuario;

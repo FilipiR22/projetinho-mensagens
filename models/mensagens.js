@@ -12,6 +12,10 @@ const Mensagens = sequelize.define('Mensagem', {
         type: DataTypes.STRING,
         allowNull: false,
     },
+    usuarioId: { // Adicionado para relação
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
 }, {
     timestamps: false,
 });

@@ -114,3 +114,107 @@ async function carregarMensagens() {
 if (document.getElementById('lista-mensagens')) {
     carregarMensagens();
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('loginForm');
+    const cadastroForm = document.getElementById('cadastroForm');
+    const mensagemForm = document.getElementById('mensagemForm');
+    const mensagensDiv = document.getElementById('mensagens');
+    let token = null;
+
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginSenha').value;
+
+            const res = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                token = data.token;
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mensagemSection').style.display = 'block';
+                carregarMensagens();
+            } else {
+                alert(data.error || 'Erro ao fazer login');
+            }
+        });
+    }
+
+    if (cadastroForm) {
+        cadastroForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('cadastroNome').value;
+            const email = document.getElementById('cadastroEmail').value;
+            const senha = document.getElementById('cadastroSenha').value;
+
+            // As funções de validação ficam no HTML!
+            if (!validarEmail(email)) {
+                alert('Email inválido!');
+                return;
+            }
+            if (!validarSenha(senha)) {
+                alert('Senha deve ter pelo menos 6 caracteres!');
+                return;
+            }
+
+            const res = await fetch('/usuario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, email, senha })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('Cadastro realizado! Faça login.');
+                cadastroForm.reset();
+            } else {
+                alert(data.error || 'Erro ao cadastrar');
+            }
+        });
+    }
+
+    if (mensagemForm) {
+        mensagemForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const conteudo = document.getElementById('mensagemConteudo').value;
+            if (!token) {
+                alert('Faça login primeiro!');
+                return;
+            }
+            const res = await fetch('/mensagens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ conteudo })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                mensagemForm.reset();
+                carregarMensagens();
+            } else {
+                alert(data.error || 'Erro ao enviar mensagem');
+            }
+        });
+    }
+
+    async function carregarMensagens() {
+        const res = await fetch('/mensagens', {
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const data = await res.json();
+        mensagensDiv.innerHTML = '';
+        if (Array.isArray(data)) {
+            data.forEach(msg => {
+                const div = document.createElement('div');
+                div.textContent = `${msg.conteudo} (Usuário: ${msg.idusuario})`;
+                mensagensDiv.appendChild(div);
+            });
+        }
+    }
+});

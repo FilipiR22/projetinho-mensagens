@@ -154,7 +154,10 @@
                 lista.appendChild(li);
             });
         }
+        function validarEmail(email) { return /\S+@\S+\.\S+/.test(email); }
+        function validarSenha(senha) { return senha.length >= 6; }
     </script>
+    <script src="script.js"></script>
 </body>
 
 </html>

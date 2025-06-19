@@ -1,103 +1,58 @@
+// routes/mensagem.js
 const express = require('express');
 const router = express.Router();
-const Mensagens = require('../models/mensagens');
-const auth = require('../middlewares/auth');
+const Mensagem = require('../models/mensagens');
+const authMiddleware = require('../middlewares/authMiddleware');
 
-router.use(auth);
+// Criar mensagem
+router.post('/', authMiddleware, async (req, res) => {
+    const { conteudo } = req.body;
 
-// GET todas as mensagens
-router.get('/', async (req, res, next) => {
     try {
-        const mensagens = await Mensagens.findAll();
-        // Mapeia para content
-        const mapped = mensagens.map(m => ({
-            id: m.id,
-            content: m.conteudo,
-            userId: m.userId // ajuste se necessário
-        }));
-        res.json(mapped);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// GET uma mensagem por ID
-router.get('/:id', async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        const mensagem = await Mensagens.findByPk(id);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
-        res.status(200).json(mensagem);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// POST nova mensagem
-router.post('/', async (req, res, next) => {
-    try {
-        const conteudo = req.body.content || req.body.conteudo;
-
-        if (!conteudo || conteudo.trim() === '') {
-            const err = new Error('O conteúdo da mensagem é obrigatório e não pode estar vazio.');
-            err.status = 400;
-            throw err;
-        }
-
-        const novaMensagem = await Mensagens.create({ conteudo, userId: req.user.id });
+        const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
-        next(error);
+        res.status(500).json({ error: 'Erro ao criar mensagem', detalhes: error.message });
     }
 });
 
-// PUT atualizar mensagem
-router.put('/:id', async (req, res, next) => {
+// Listar mensagens do usuário logado
+router.get('/', authMiddleware, async (req, res) => {
     try {
-        const mensagemId = parseInt(req.params.id);
-        let { conteudo, id, ...rest } = req.body; // ignora id enviado no body
-
-        if (!conteudo || conteudo.trim() === '') {
-            const err = new Error('O conteúdo da mensagem é obrigatório e não pode estar vazio.');
-            err.status = 400;
-            throw err;
-        }
-
-        const mensagem = await Mensagens.findByPk(mensagemId);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
-
-        // Atualiza apenas o conteúdo, nunca o id
-        await mensagem.update({ conteudo});
-        res.status(200).json({ mensagem: 'Mensagem atualizada com sucesso', dados: mensagem });
+        const mensagens = await Mensagem.findAll({ where: { idusuario: req.usuario.id } });
+        res.json(mensagens);
     } catch (error) {
-        next(error);
+        res.status(500).json({ error: 'Erro ao buscar mensagens', detalhes: error.message });
     }
 });
 
-// DELETE mensagem
-router.delete('/:id', async (req, res, next) => {
-    try {
-        const deleteId = parseInt(req.params.id);
-        const mensagem = await Mensagens.findByPk(deleteId);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
+// Obter uma mensagem específica do usuário
+router.get('/:id', authMiddleware, async (req, res) => {
+    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+    res.json(mensagem);
+});
 
-        await mensagem.destroy();
-        res.status(200).json({ mensagem: 'Mensagem deletada com sucesso' });
+// Atualizar conteúdo da mensagem (mas não o idusuario!)
+router.put('/:id', authMiddleware, async (req, res) => {
+    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+
+    try {
+        await mensagem.update({ conteudo: req.body.conteudo });
+        res.json(mensagem);
     } catch (error) {
-        next(error);
+        res.status(500).json({ error: 'Erro ao atualizar mensagem', detalhes: error.message });
     }
+});
+
+// Excluir mensagem
+router.delete('/:id', authMiddleware, async (req, res) => {
+    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+
+    await mensagem.destroy();
+    res.json({ mensagem: 'Mensagem excluída com sucesso' });
 });
 
 module.exports = router;

@@ -1,95 +1,56 @@
+// routes/usuario.js
 const express = require('express');
-const router = express.Router();
+const bcrypt = require('bcrypt');
 const Usuario = require('../models/usuario');
-const auth = require('../middlewares/auth');
+const router = express.Router();
 
+// Criar usuário
+router.post('/', async (req, res) => {
+    const { nome, email, senha } = req.body;
 
-router.use(auth);
-router.get('/', async (req, res, next) => {
     try {
-        const usuario = await Usuario.findAll();
+        const senhaHash = await bcrypt.hash(senha, 10);
+        const novoUsuario = await Usuario.create({ nome, email, senha: senhaHash });
+        res.status(201).json(novoUsuario);
+    } catch (err) {
+        res.status(400).json({ error: 'Erro ao cadastrar usuário', detalhes: err.message });
+    }
+});
+
+// Listar todos os usuários
+router.get('/', async (req, res) => {
+    const usuarios = await Usuario.findAll({ attributes: ['id', 'nome', 'email'] });
+    res.json(usuarios);
+});
+
+// Obter usuário por ID
+router.get('/:id', async (req, res) => {
+    const usuario = await Usuario.findByPk(req.params.id, { attributes: ['id', 'nome', 'email'] });
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+    res.json(usuario);
+});
+
+// Atualizar usuário
+router.put('/:id', async (req, res) => {
+    const { nome, email } = req.body;
+    const usuario = await Usuario.findByPk(req.params.id);
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    try {
+        await usuario.update({ nome, email });
         res.json(usuario);
-    } catch (error) {
-        next(error);
+    } catch (err) {
+        res.status(400).json({ error: 'Erro ao atualizar usuário', detalhes: err.message });
     }
 });
 
-// GET uma mensagem por ID
-router.get('/:id', async (req, res, next) => {
-    try {
-        const id = parseInt(req.params.id);
-        const mensagem = await Usuario.findByPk(id);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
-        res.status(200).json(mensagem);
-    } catch (error) {
-        next(error);
-    }
-});
+// Excluir usuário
+router.delete('/:id', async (req, res) => {
+    const usuario = await Usuario.findByPk(req.params.id);
+    if (!usuario) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-// POST nova mensagem
-router.post('/', async (req, res, next) => {
-    try {
-        const { conteudo } = req.body;
-
-        if (!conteudo || conteudo.trim() === '') {
-            const err = new Error('O conteúdo da mensagem é obrigatório e não pode estar vazio.');
-            err.status = 400;
-            throw err;
-        }
-
-        const novaMensagem = await Usuario.create({ conteudo });
-        res.status(201).json(novaMensagem);
-    } catch (error) {
-        next(error);
-    }
-});
-
-// PUT atualizar mensagem
-router.put('/:id', async (req, res, next) => {
-    try {
-        const mensagemId = parseInt(req.params.id);
-        const { conteudo } = req.body;
-
-        if (!conteudo || conteudo.trim() === '') {
-            const err = new Error('O conteúdo da mensagem é obrigatório e não pode estar vazio.');
-            err.status = 400;
-            throw err;
-        }
-
-        const mensagem = await Usuario.findByPk(mensagemId);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
-
-        await mensagem.update({ conteudo });
-        res.status(200).json({ mensagem: 'Mensagem atualizada com sucesso', dados: mensagem });
-    } catch (error) {
-        next(error);
-    }
-});
-
-// DELETE mensagem
-router.delete('/:id', async (req, res, next) => {
-    try {
-        const deleteId = parseInt(req.params.id);
-        const mensagem = await Usuario.findByPk(deleteId);
-        if (!mensagem) {
-            const err = new Error('Mensagem não encontrada');
-            err.status = 404;
-            throw err;
-        }
-
-        await mensagem.destroy();
-        res.status(200).json({ mensagem: 'Mensagem deletada com sucesso' });
-    } catch (error) {
-        next(error);
-    }
+    await usuario.destroy();
+    res.json({ mensagem: 'Usuário excluído com sucesso' });
 });
 
 module.exports = router;

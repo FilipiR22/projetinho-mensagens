@@ -1,33 +1,30 @@
 const express = require('express');
 const sequelize = require('./database');
-const mensagensRouter = require('./routes/mensagens');
-const usuarioRouter = require('./routes/usuario');
-const erroMiddleware = require('./middlewares/erroMiddleware');
-const authRoutes = require('./routes/authRoutes');
-const path = require('path');
-const cors = require('cors');
+const mensagemRoutes = require('./routes/mensagens');
+const usuarioRoutes = require('./routes/usuario');
+const authRoutes = require('./routes/auth');
+const authMiddleware = require('./middlewares/authMiddleware');
+const path = require('path'); // Adicione esta linha
+
 const app = express();
-const PORT = 3000;
-
-app.use(cors());
-
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/mensagens', authMiddleware, mensagemRoutes);
+app.use('/usuario', usuarioRoutes);
+app.use('/login', authRoutes);
+
+app.use(express.static(path.join(__dirname, 'public'))); // Adicione esta linha
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+const PORT = 3000;
 
-// app.use('/mensagens', mensagensRouter);
-// app.use('/usuario', usuarioRouter);
-app.use('/auth', authRoutes);
-
-app.use(erroMiddleware);
-
-sequelize.sync().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Servidor rodando em http://localhost:${PORT}`);
+sequelize.sync()
+    .then(() => {
+        app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+    })
+    .catch((err) => {
+        console.error('Erro ao sincronizar o banco de dados:', err);
     });
-});

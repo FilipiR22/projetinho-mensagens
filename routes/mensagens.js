@@ -19,10 +19,13 @@ router.post('/', authMiddleware, async (req, res) => {
 // Listar mensagens do usuário logado
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const mensagens = await Mensagem.findAll({ where: { idusuario: req.usuario.id } });
+        const mensagens = await Mensagem.findAll({
+            where: { idusuario: req.usuario.id },
+            order: [['datahora', 'DESC']]
+        });
         res.json(mensagens);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar mensagens', detalhes: error.message });
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar mensagens' });
     }
 });
 

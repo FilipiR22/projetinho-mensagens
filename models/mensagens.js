@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../database');
 const Usuario = require('./usuario');
+const Comentario = require('./comentario');
 
 const Mensagens = sequelize.define('Mensagens', { // Corrija aqui para plural
     id: {
@@ -22,5 +23,6 @@ const Mensagens = sequelize.define('Mensagens', { // Corrija aqui para plural
 });
 
 Mensagens.belongsTo(Usuario, { foreignKey: 'idusuario' });
+Mensagens.hasMany(Comentario, { foreignKey: 'idmensagem' });
 
 module.exports = Mensagens;

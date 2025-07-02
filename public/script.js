@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const conteudo = document.getElementById('conteudo').value;
+            const token = localStorage.getItem('token');
+            console.log('Token enviado:', token);
+            console.log('Conteúdo da mensagem:', conteudo);
             const res = await fetch('/mensagens', {
                 method: 'POST',
                 headers: {
@@ -69,11 +72,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ conteudo })
             });
+            console.log('Resposta do servidor:', res);
+            console.log('Status da resposta:', res.status);
+            console.log('conteúdo:', res.conteudoMensagem);
             if (res.ok) {
                 document.getElementById('conteudo').value = '';
                 carregarMensagens();
             } else {
                 alert('Erro ao enviar mensagem');
+                console.log('conteúdo:', res.conteudoMensagem);
             }
         });
     }
@@ -82,24 +89,38 @@ document.addEventListener('DOMContentLoaded', () => {
     async function carregarMensagens() {
         const token = localStorage.getItem('token');
         const res = await fetch('/mensagens', {
-            headers: { 'Authorization': 'Bearer ' + token }
+            headers: { 'Authorization': 'Bearer ' + token },
+            method: 'GET'
         });
         const mensagens = await res.json();
         const lista = document.getElementById('mensagensLista');
         lista.innerHTML = '';
-        mensagens.forEach(msg => {
+        for (let i = 0; i < mensagens.length; i++) {
+            const msg = mensagens[i];
             const div = document.createElement('div');
             div.className = 'card mb-3';
-            div.innerHTML = `
-                <div class="card-body">
-                    <p class="card-text">${msg.conteudo}</p>
-                    <button class="btn btn-info btn-sm ver-comentarios" data-id="${msg.id}">Ver Comentários</button>
-                </div>
-            `;
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+
+            const p = document.createElement('p');
+            p.className = 'card-text';
+            p.textContent = msg.conteudo;
+
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-info btn-sm ver-comentarios';
+            btn.setAttribute('data-id', msg.id);
+            btn.textContent = 'Ver Comentários';
+
+            cardBody.appendChild(p);
+            cardBody.appendChild(btn);
+            div.appendChild(cardBody);
             lista.appendChild(div);
-        });
+        }
+
+        console.log(mensagens);
         document.querySelectorAll('.ver-comentarios').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const idMensagem = this.getAttribute('data-id');
                 window.location.href = `/mensagens/${idMensagem}/comentarios`;
             });
@@ -151,15 +172,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Authorization': 'Bearer ' + localStorage.getItem('token')
             }
         })
-        .then(res => res.json())
-        .then(comentarios => {
-            const comentariosDiv = document.getElementById('comentarios');
-            comentariosDiv.innerHTML = '';
-            comentarios.forEach(comentario => {
-                const p = document.createElement('p');
-                p.textContent = comentario.conteudo + ' (' + new Date(comentario.datahora).toLocaleString() + ')';
-                comentariosDiv.appendChild(p);
+            .then(res => res.json())
+            .then(comentarios => {
+                const comentariosDiv = document.getElementById('comentarios');
+                comentariosDiv.innerHTML = '';
+                comentarios.forEach(comentario => {
+                    const p = document.createElement('p');
+                    p.textContent = comentario.conteudo + ' (' + new Date(comentario.datahora).toLocaleString() + ')';
+                    comentariosDiv.appendChild(p);
+                });
             });
+    }
+
+    // LOGOUT
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
         });
     }
 });

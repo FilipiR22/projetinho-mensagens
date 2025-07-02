@@ -6,24 +6,22 @@ const authMiddleware = require('../middlewares/authMiddleware');
 
 // Criar mensagem
 router.post('/', authMiddleware, async (req, res) => {
-    const { conteudo } = req.body;
-
+    const conteudo= req.body.conteudo;
     try {
         const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao criar mensagem', detalhes: error.message });
+        res.status(400).json({ error: 'Erro ao criar mensagem', detalhes: error.message, conteudoMensagem: conteudo });
     }
 });
 
 // Listar mensagens do usuário logado
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const mensagens = await Mensagem.findAll({
+        const mensagens_buscadas = await Mensagem.findAll({
             where: { idusuario: req.usuario.id },
-            order: [['datahora', 'DESC']]
         });
-        res.json(mensagens);
+        res.json(mensagens_buscadas);
     } catch (err) {
         res.status(500).json({ error: 'Erro ao buscar mensagens' });
     }

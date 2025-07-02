@@ -89,41 +89,83 @@ document.addEventListener('DOMContentLoaded', () => {
     async function carregarMensagens() {
         const token = localStorage.getItem('token');
         const res = await fetch('/mensagens', {
-            headers: { 'Authorization': 'Bearer ' + token },
-            method: 'GET'
+            headers: { 'Authorization': 'Bearer ' + token }
         });
         const mensagens = await res.json();
         const lista = document.getElementById('mensagensLista');
         lista.innerHTML = '';
+
         for (let i = 0; i < mensagens.length; i++) {
             const msg = mensagens[i];
             const div = document.createElement('div');
             div.className = 'card mb-3';
 
             const cardBody = document.createElement('div');
-            cardBody.className = 'card-body';
+            cardBody.className = 'card-body d-flex justify-content-between align-items-center';
 
             const p = document.createElement('p');
-            p.className = 'card-text';
+            p.className = 'card-text mb-0';
             p.textContent = msg.conteudo;
 
-            const btn = document.createElement('button');
-            btn.className = 'btn btn-info btn-sm ver-comentarios';
-            btn.setAttribute('data-id', msg.id);
-            btn.textContent = 'Ver Comentários';
+            const btnGroup = document.createElement('div');
+
+            const btnComentarios = document.createElement('button');
+            btnComentarios.className = 'btn btn-info btn-sm ver-comentarios me-2';
+            btnComentarios.setAttribute('data-id', msg.id);
+            btnComentarios.textContent = 'Ver Comentários';
+
+            const btnExcluir = document.createElement('button');
+            btnExcluir.className = 'btn btn-danger btn-sm excluir-mensagem';
+            btnExcluir.setAttribute('data-id', msg.id);
+            btnExcluir.textContent = 'Excluir';
+
+            btnGroup.appendChild(btnComentarios);
+            btnGroup.appendChild(btnExcluir);
 
             cardBody.appendChild(p);
-            cardBody.appendChild(btn);
+            cardBody.appendChild(btnGroup);
             div.appendChild(cardBody);
             lista.appendChild(div);
         }
 
-        console.log(mensagens);
+        // Eventos dos botões
         document.querySelectorAll('.ver-comentarios').forEach(btn => {
             btn.addEventListener('click', function () {
                 const idMensagem = this.getAttribute('data-id');
                 window.location.href = `/mensagens/${idMensagem}/comentarios`;
             });
+        });
+
+        // Evento para exclusão
+        let idParaExcluir = null;
+        document.querySelectorAll('.excluir-mensagem').forEach(btn => {
+            btn.addEventListener('click', function () {
+                idParaExcluir = this.getAttribute('data-id');
+                const modal = new bootstrap.Modal(document.getElementById('modalConfirmarExclusao'));
+                modal.show();
+
+                // Confirmação
+                const btnConfirmar = document.getElementById('btnConfirmarExclusao');
+                // Remove event listeners antigos para evitar múltiplas chamadas
+                btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
+                const novoBtnConfirmar = document.getElementById('btnConfirmarExclusao');
+                novoBtnConfirmar.addEventListener('click', async function () {
+                    await excluirMensagem(idParaExcluir);
+                    modal.hide();
+                    carregarMensagens();
+                });
+            });
+        });
+    }
+
+    // Função para excluir mensagem
+    async function excluirMensagem(idMensagem) {
+        const token = localStorage.getItem('token');
+        await fetch(`/mensagens/${idMensagem}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
         });
     }
 

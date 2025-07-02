@@ -4,10 +4,11 @@ const router = express.Router();
 const Comentario = require('../models/comentario');
 
 // Listar comentários de uma mensagem
-router.get('/:idmensagem', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
+        const { idmensagem } = req.params;
         const comentarios = await Comentario.findAll({
-            where: { idmensagem: req.params.idmensagem },
+            where: { idmensagem },
             order: [['datahora', 'ASC']]
         });
         res.json(comentarios);
@@ -17,13 +18,14 @@ router.get('/:idmensagem', async (req, res) => {
 });
 
 // Criar novo comentário
-router.post('/:idmensagem', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
+        const { idmensagem } = req.params;
         const { conteudo } = req.body;
         const novoComentario = await Comentario.create({
             conteudo,
             idusuario: req.usuario.id,
-            idmensagem: req.params.idmensagem,
+            idmensagem,
             datahora: new Date()
         });
         res.status(201).json(novoComentario);

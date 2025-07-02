@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const btnGroup = document.createElement('div');
 
             const btnComentarios = document.createElement('button');
-            btnComentarios.className = 'btn btn-info btn-sm ver-comentarios me-2';
+            btnComentarios.className = 'btn btn-primary btn-sm ver-comentarios me-2';
             btnComentarios.setAttribute('data-id', msg.id);
             btnComentarios.textContent = 'Ver Comentários';
 
@@ -129,12 +129,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Eventos dos botões
-        document.querySelectorAll('.ver-comentarios').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const idMensagem = this.getAttribute('data-id');
-                window.location.href = `/mensagens/${idMensagem}/comentarios`;
+        function verComentarios() {
+            document.querySelectorAll('.ver-comentarios').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const idMensagem = this.getAttribute('data-id');
+                    window.location.href = `/mensagens/${idMensagem}/comentarios`;
+                });
             });
-        });
+        } 
 
         // Evento para exclusão
         let idParaExcluir = null;

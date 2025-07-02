@@ -23,7 +23,7 @@ app.use(express.json());
 
 // Rotas de API (protegidas)
 app.use('/mensagens', authMiddleware, mensagemRoutes);
-app.use('/comentarios', authMiddleware, comentariosRoutes);
+app.use('/mensagens/:idmensagem/comentarios',mensagemRoutes, comentariosRoutes);
 
 // Rotas públicas
 app.use('/usuario', usuarioRoutes);

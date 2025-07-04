@@ -1,28 +1,29 @@
-// routes/mensagem.js
-const express = require('express');
+import express from 'express';
+import Mensagem from '../models/mensagens.js'; // Adicione a extensão .js
+import authMiddleware from '../middlewares/authMiddleware.js'; // Adicione a extensão .js
+
 const router = express.Router();
-const Mensagem = require('../models/mensagens');
-const authMiddleware = require('../middlewares/authMiddleware');
 
 // Criar mensagem
 router.post('/', authMiddleware, async (req, res) => {
-    const { conteudo } = req.body;
-
+    const { conteudo } = req.body; // Desestruturação para melhor legibilidade
     try {
         const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
-        res.status(500).json({ error: 'Erro ao criar mensagem', detalhes: error.message });
+        res.status(400).json({ error: 'Erro ao criar mensagem', detalhes: error.message, conteudoMensagem: conteudo });
     }
 });
 
 // Listar mensagens do usuário logado
 router.get('/', authMiddleware, async (req, res) => {
     try {
-        const mensagens = await Mensagem.findAll({ where: { idusuario: req.usuario.id } });
-        res.json(mensagens);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao buscar mensagens', detalhes: error.message });
+        const mensagensBuscadas = await Mensagem.findAll({ // Renomeado para camelCase
+            where: { idusuario: req.usuario.id },
+        });
+        res.json(mensagensBuscadas);
+    } catch (err) {
+        res.status(500).json({ error: 'Erro ao buscar mensagens' });
     }
 });
 
@@ -55,4 +56,4 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     res.json({ mensagem: 'Mensagem excluída com sucesso' });
 });
 
-module.exports = router;
+export default router;

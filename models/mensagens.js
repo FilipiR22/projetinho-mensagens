@@ -1,8 +1,9 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database');
-const Usuario = require('./usuario');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database.js'; // Ajuste o caminho conforme seu arquivo database.js
+import Usuario from './usuario.js'; // Adicione a extensão .js
+import Comentario from './comentario.js'; // Adicione a extensão .js
 
-const Mensagens = sequelize.define('Mensagens', { // Corrija aqui para plural
+const Mensagens = sequelize.define('Mensagens', {
     id: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -22,5 +23,6 @@ const Mensagens = sequelize.define('Mensagens', { // Corrija aqui para plural
 });
 
 Mensagens.belongsTo(Usuario, { foreignKey: 'idusuario' });
+Mensagens.hasMany(Comentario, { foreignKey: 'idmensagem' });
 
-module.exports = Mensagens;
+export default Mensagens;

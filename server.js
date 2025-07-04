@@ -23,22 +23,24 @@ app.use(express.json());
 
 // Rotas de API (protegidas)
 app.use('/mensagens', authMiddleware, mensagemRoutes);
-app.use('/mensagens/:idmensagem/comentarios',mensagemRoutes, comentariosRoutes);
+
+// Rotas de comentários SEM proteção
+app.use('/mensagens/:idmensagem/comentarios', authMiddleware, comentariosRoutes);
 
 // Rotas públicas
 app.use('/usuario', usuarioRoutes);
 app.use('/login', authRoutes);
 
 // Arquivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
 
 // Rotas para páginas HTML
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-app.get('/mensagens/:idmensagem/comentarios', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'comentarios.html'));
-});
+// app.get('/', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// });
+// app.get('/mensagens/:idmensagem/comentarios', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'public', 'comentarios.html'));
+// });
 
 const PORT = 3000;
 sequelize.sync()

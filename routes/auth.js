@@ -1,6 +1,6 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const Usuario = require('../models/usuario');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import Usuario from '../models/usuario.js'; // Adicione a extensão .js se for um módulo local
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -18,4 +18,4 @@ router.post('/', async (req, res) => {
     res.json({ token });
 });
 
-module.exports = router;
+export default router;

@@ -14,8 +14,6 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
    node server.js
    ```
 
-3. Use um cliente HTTP como Postman para consumir a API.
-
 ---
 
 ## Rotas da API
@@ -115,7 +113,7 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
 - **Body:**
   ```json
   {
-    "texto": "Comentário legal!"
+    "conteudo": "Comentário legal!"
   }
   ```
 

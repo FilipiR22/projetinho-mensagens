@@ -1,7 +1,6 @@
-// filepath: [comentario.js](http://_vscodecontentref_/8)
-const express = require('express');
-const router = express.Router();
-const Comentario = require('../models/comentario');
+import express from 'express';
+import Comentario from '../models/comentario.js'; // Adicione a extensão .js para módulos locais
+const router = express.Router({ mergeParams: true }); 
 
 // Listar comentários de uma mensagem
 router.get('/', async (req, res) => {
@@ -20,7 +19,7 @@ router.get('/', async (req, res) => {
 // Criar novo comentário
 router.post('/', async (req, res) => {
     try {
-        const { idmensagem } = req.params;
+        const { idmensagem } = parseInt(req.params.idmensagem);
         const { conteudo } = req.body;
         const novoComentario = await Comentario.create({
             conteudo,
@@ -30,8 +29,8 @@ router.post('/', async (req, res) => {
         });
         res.status(201).json(novoComentario);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao criar comentário' });
+        res.status(500).json({ error: 'Erro ao criar comentário', details: err.message });
     }
 });
 
-module.exports = router;
+export default router;

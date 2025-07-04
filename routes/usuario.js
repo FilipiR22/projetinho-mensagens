@@ -1,7 +1,7 @@
-// routes/usuario.js
-const express = require('express');
-const bcrypt = require('bcrypt');
-const Usuario = require('../models/usuario');
+import express from 'express';
+import bcrypt from 'bcrypt';
+import Usuario from '../models/usuario.js'; // Adicione a extensão .js para módulos locais
+
 const router = express.Router();
 
 // Criar usuário
@@ -53,4 +53,4 @@ router.delete('/:id', async (req, res) => {
     res.json({ mensagem: 'Usuário excluído com sucesso' });
 });
 
-module.exports = router;
+export default router;

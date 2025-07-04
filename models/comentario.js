@@ -1,5 +1,5 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../database');
+import { DataTypes } from 'sequelize';
+import sequelize from '../database.js';
 
 const Comentario = sequelize.define('Comentario', {
     id: {
@@ -28,4 +28,4 @@ const Comentario = sequelize.define('Comentario', {
     timestamps: false
 });
 
-module.exports = Comentario;
+export default Comentario;

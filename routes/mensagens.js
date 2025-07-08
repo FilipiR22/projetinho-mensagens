@@ -5,8 +5,11 @@ import authMiddleware from '../middlewares/authMiddleware.js'; // Adicione a ext
 const router = express.Router();
 
 // Criar mensagem
-router.post('/', authMiddleware, async (req, res) => {
-    const { conteudo } = req.body; // Desestruturação para melhor legibilidade
+router.post('/', async (req, res) => {
+    const { titulo, conteudo } = req.body;
+    if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
+        return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
+    }
     try {
         const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
@@ -35,7 +38,11 @@ router.get('/:id', authMiddleware, async (req, res) => {
 });
 
 // Atualizar conteúdo da mensagem (mas não o idusuario!)
-router.put('/:id', authMiddleware, async (req, res) => {
+router.put('/:id', async (req, res) => {
+    const { titulo, conteudo } = req.body;
+    if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
+        return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
+    }
     const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
     if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
 

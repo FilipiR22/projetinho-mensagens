@@ -1,17 +1,17 @@
 import express from 'express';
-import Mensagem from '../models/mensagens.js'; // Adicione a extensão .js
-import authMiddleware from '../middlewares/authMiddleware.js'; // Adicione a extensão .js
+import Mensagens from '../models/mensagens.js';
+import { authorizeRole } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Criar mensagem
+// Criar mensagem (qualquer user autenticado)
 router.post('/', async (req, res) => {
     const { titulo, conteudo } = req.body;
     if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
         return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
     }
     try {
-        const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
+        const novaMensagem = await Mensagens.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
         res.status(400).json({ error: 'Erro ao criar mensagem', detalhes: error.message, conteudoMensagem: conteudo });
@@ -19,9 +19,9 @@ router.post('/', async (req, res) => {
 });
 
 // Listar mensagens do usuário logado
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const mensagensBuscadas = await Mensagem.findAll({ // Renomeado para camelCase
+        const mensagensBuscadas = await Mensagens.findAll({ // Renomeado para camelCase
             where: { idusuario: req.usuario.id },
         });
         res.json(mensagensBuscadas);
@@ -31,20 +31,26 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // Obter uma mensagem específica do usuário
-router.get('/:id', authMiddleware, async (req, res) => {
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+router.get('/:id', async (req, res) => {
+    const mensagem = await Mensagens.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
     if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
     res.json(mensagem);
 });
 
-// Atualizar conteúdo da mensagem (mas não o idusuario!)
+// Atualizar mensagem
 router.put('/:id', async (req, res) => {
+    const mensagem = await Mensagens.findByPk(req.params.id);
+    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+
+    // ADMIN pode tudo, USER só se for dono
+    if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+        return res.status(403).json({ error: 'Acesso negado: só pode alterar suas próprias mensagens' });
+    }
+
     const { titulo, conteudo } = req.body;
     if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
         return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
     }
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
 
     try {
         await mensagem.update({ conteudo: req.body.conteudo });
@@ -54,13 +60,16 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// Excluir mensagem
-router.delete('/:id', authMiddleware, async (req, res) => {
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+// Deletar mensagem
+router.delete('/:id', async (req, res) => {
+    const mensagem = await Mensagens.findByPk(req.params.id);
     if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
 
+    if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+        return res.status(403).json({ error: 'Acesso negado: só pode deletar suas próprias mensagens' });
+    }
     await mensagem.destroy();
-    res.json({ mensagem: 'Mensagem excluída com sucesso' });
+    res.status(204).send();
 });
 
 export default router;

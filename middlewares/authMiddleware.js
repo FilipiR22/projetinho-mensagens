@@ -15,4 +15,16 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+export function authorizeRole(...roles) {
+    return (req, res, next) => {
+        if (!req.usuario) {
+            return res.status(401).json({ error: 'Não autenticado' });
+        }
+        if (!roles.includes(req.usuario.perfil)) {
+            return res.status(403).json({ error: 'Acesso negado: perfil insuficiente' });
+        }
+        next();
+    };
+}
+
 export default authMiddleware; // Exportar como default

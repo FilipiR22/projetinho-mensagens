@@ -20,6 +20,14 @@ const Usuario = sequelize.define('Usuario', {
     senha: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    perfil: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'USER', // padrão USER
+        validate: {
+            isIn: [['ADMIN', 'USER']]
+        }
     }
 }, {
     timestamps: false

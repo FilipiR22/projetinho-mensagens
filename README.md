@@ -1,6 +1,8 @@
 # projetinho-mensagens
 
-API para cadastro de usuários, autenticação, mensagens e comentários.
+API para cadastro de usuários, autenticação, mensagens e comentários, com gerenciamento por administrador.
+
+---
 
 ## Como usar
 
@@ -13,6 +15,15 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
    ```bash
    node server.js
    ```
+
+---
+
+## Autenticação
+
+- Use o token JWT retornado no login em todas as rotas protegidas:
+  ```
+  Authorization: Bearer SEU_TOKEN_JWT
+  ```
 
 ---
 
@@ -48,10 +59,6 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
     "token": "SEU_TOKEN_JWT"
   }
   ```
-- Use o token JWT nas próximas requisições protegidas, no header:
-  ```
-  Authorization: Bearer SEU_TOKEN_JWT
-  ```
 
 ---
 
@@ -65,7 +72,6 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
 - **Body:**
   ```json
   {
-    "titulo": "Primeira mensagem",
     "conteudo": "Olá, mundo!"
   }
   ```
@@ -75,6 +81,9 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
 - **GET** `/mensagens`
 - **Headers:**  
   `Authorization: Bearer SEU_TOKEN_JWT`
+- **Descrição:**  
+  - Usuário comum vê apenas suas mensagens.
+  - Admin vê todas as mensagens.
 
 #### Buscar mensagem específica
 
@@ -90,16 +99,21 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
 - **Body:**
   ```json
   {
-    "titulo": "Novo título",
     "conteudo": "Novo conteúdo"
   }
   ```
+- **Descrição:**  
+  - Usuário comum só pode atualizar suas mensagens.
+  - Admin pode atualizar qualquer mensagem.
 
 #### Deletar mensagem
 
 - **DELETE** `/mensagens/{id}`
 - **Headers:**  
   `Authorization: Bearer SEU_TOKEN_JWT`
+- **Descrição:**  
+  - Usuário comum só pode deletar suas mensagens.
+  - Admin pode deletar qualquer mensagem.
 
 ---
 
@@ -122,11 +136,84 @@ API para cadastro de usuários, autenticação, mensagens e comentários.
 - **GET** `/mensagens/{idmensagem}/comentarios`
 - **Headers:**  
   `Authorization: Bearer SEU_TOKEN_JWT`
+- **Descrição:**  
+  - Usuário comum vê comentários da mensagem.
+  - Admin pode ver todos os comentários.
+
+#### Atualizar comentário
+
+- **PUT** `/mensagens/{idmensagem}/comentarios/{idComentario}`
+- **Headers:**  
+  `Authorization: Bearer SEU_TOKEN_JWT`
+- **Body:**
+  ```json
+  {
+    "conteudo": "Comentário editado pelo usuário ou admin"
+  }
+  ```
+- **Descrição:**  
+  - Usuário comum só pode editar seus comentários.
+  - Admin pode editar qualquer comentário.
+
+#### Deletar comentário
+
+- **DELETE** `/mensagens/{idmensagem}/comentarios/{idComentario}`
+- **Headers:**  
+  `Authorization: Bearer SEU_TOKEN_JWT`
+- **Descrição:**  
+  - Usuário comum só pode deletar seus comentários.
+  - Admin pode deletar qualquer comentário.
+
+---
+
+## Como usar o Refresh Token
+
+### 1. Login
+
+Ao fazer login em `/login`, você receberá dois tokens:
+
+```json
+{
+  "token": "SEU_ACCESS_TOKEN",
+  "refreshToken": "SEU_REFRESH_TOKEN"
+}
+```
+
+- Use o `token` (access token) no header `Authorization` para acessar as rotas protegidas.
+- Guarde o `refreshToken` para renovar seu access token quando ele expirar.
+
+---
+
+### 2. Renovar o Access Token
+
+Quando o access token expirar, faça uma requisição:
+
+- **POST** `/login/refresh`
+- **Body:**
+  ```json
+  {
+    "refreshToken": "SEU_REFRESH_TOKEN"
+  }
+  ```
+- **Resposta:**
+  ```json
+  {
+    "token": "NOVO_ACCESS_TOKEN"
+  }
+  ```
+
+Use o novo access token retornado para continuar acessando as rotas protegidas.
+
+---
+
+**Importante:**  
+- O refresh token também expira (veja o tempo em `.env`).
+- Se o refresh token expirar ou for inválido, será necessário fazer login novamente.
 
 ---
 
 ## Observações
 
 - Todas as rotas de mensagens e comentários exigem autenticação via JWT.
-- Use o Postman ou outro cliente HTTP para testar as rotas.
-- Não há front-end, apenas API
+- O campo `perfil` define se o usuário é `USER` ou `ADMIN`.
+- O admin tem permissões totais sobre mensagens e comentários.

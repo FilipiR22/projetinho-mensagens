@@ -10,6 +10,7 @@ import comentariosRoutes from './routes/comentario.js';
 import Usuario from './models/usuario.js';
 import Mensagens from './models/mensagens.js';
 import Comentario from './models/comentario.js';
+import RefreshToken from './models/refreshToken.js';
 
 // Defina os relacionamentos aqui
 Comentario.belongsTo(Usuario, { foreignKey: 'idusuario' });

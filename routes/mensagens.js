@@ -1,14 +1,17 @@
 import express from 'express';
-import Mensagem from '../models/mensagens.js'; // Adicione a extensão .js
-import authMiddleware from '../middlewares/authMiddleware.js'; // Adicione a extensão .js
+import Mensagens from '../models/mensagens.js';
+import adminMiddleware from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
-// Criar mensagem
-router.post('/', authMiddleware, async (req, res) => {
-    const { conteudo } = req.body; // Desestruturação para melhor legibilidade
+// Criar mensagem (qualquer user autenticado)
+router.post('/', async (req, res) => {
+    const { titulo, conteudo } = req.body;
+    if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
+        return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
+    }
     try {
-        const novaMensagem = await Mensagem.create({ conteudo, idusuario: req.usuario.id });
+        const novaMensagem = await Mensagens.create({ conteudo, idusuario: req.usuario.id });
         res.status(201).json(novaMensagem);
     } catch (error) {
         res.status(400).json({ error: 'Erro ao criar mensagem', detalhes: error.message, conteudoMensagem: conteudo });
@@ -16,44 +19,62 @@ router.post('/', authMiddleware, async (req, res) => {
 });
 
 // Listar mensagens do usuário logado
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-        const mensagensBuscadas = await Mensagem.findAll({ // Renomeado para camelCase
-            where: { idusuario: req.usuario.id },
-        });
-        res.json(mensagensBuscadas);
+        let mensagens;
+        if (req.usuario.perfil === 'ADMIN') {
+            mensagens = await Mensagens.findAll();
+        } else {
+            mensagens = await Mensagens.findAll({ where: { idusuario: req.usuario.id } });
+        }
+        res.json(mensagens);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao buscar mensagens' });
+        res.status(500).json({ erro: 'Erro ao buscar mensagens' });
     }
 });
 
 // Obter uma mensagem específica do usuário
-router.get('/:id', authMiddleware, async (req, res) => {
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
+router.get('/:id', async (req, res) => {
+    const mensagem = await Mensagens.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
     if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
     res.json(mensagem);
 });
 
-// Atualizar conteúdo da mensagem (mas não o idusuario!)
-router.put('/:id', authMiddleware, async (req, res) => {
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
-
+// Atualizar mensagem
+router.put('/:id', async (req, res) => {
     try {
-        await mensagem.update({ conteudo: req.body.conteudo });
+        const mensagem = await Mensagens.findByPk(req.params.id);
+        if (!mensagem) return res.status(404).json({ erro: 'Mensagem não encontrada' });
+
+        // Só admin ou dono pode editar
+        if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        mensagem.conteudo = req.body.conteudo || mensagem.conteudo;
+        await mensagem.save();
         res.json(mensagem);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar mensagem', detalhes: error.message });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao atualizar mensagem' });
     }
 });
 
-// Excluir mensagem
-router.delete('/:id', authMiddleware, async (req, res) => {
-    const mensagem = await Mensagem.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+// Deletar mensagem
+router.delete('/:id', async (req, res) => {
+    try {
+        const mensagem = await Mensagens.findByPk(req.params.id);
+        if (!mensagem) return res.status(404).json({ erro: 'Mensagem não encontrada' });
 
-    await mensagem.destroy();
-    res.json({ mensagem: 'Mensagem excluída com sucesso' });
+        // Só admin ou dono pode deletar
+        if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        await mensagem.destroy();
+        res.json({ msg: 'Mensagem deletada' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao deletar mensagem' });
+    }
 });
 
 export default router;

@@ -21,14 +21,13 @@ function generateRefreshToken(user) {
     );
 }
 
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
     const { email, senha } = req.body;
     try {
         const usuario = await Usuario.findOne({ where: { email } });
         if (!usuario || !(await usuario.checkPassword(senha))) {
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }
-
         const accessToken = generateAccessToken(usuario);
         const refreshToken = generateRefreshToken(usuario);
 
@@ -38,7 +37,6 @@ router.post('/login', async (req, res) => {
         res.json({
             token: accessToken,
             refreshToken: refreshToken,
-            usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email }
         });
     } catch (err) {
         res.status(500).json({ error: 'Erro ao fazer login', detalhes: err.message });
@@ -59,7 +57,8 @@ router.post('/refresh', async (req, res) => {
 
     try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || 'senha');
-        const usuario = { id: decoded.id, email: decoded.email };
+        // Inclui o perfil ao gerar novo access token
+        const usuario = { id: decoded.id, email: decoded.email, perfil: decoded.perfil };
         const newAccessToken = generateAccessToken(usuario);
 
         res.json({ token: newAccessToken });

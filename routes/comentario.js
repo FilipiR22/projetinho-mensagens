@@ -47,48 +47,40 @@ router.post('/', async (req, res) => {
 });
 
 // Atualizar comentário
-router.put('/:id', async (req, res) => {
-    if (!req.usuario) {
-        return res.status(401).json({ error: 'Não autenticado' });
-    }
-    const { conteudo } = req.body;
-    if (!conteudo || !conteudo.trim()) {
-        return res.status(400).json({ erro: 'Conteúdo do comentário não pode ser vazio.' });
-    }
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-        return res.status(400).json({ erro: 'ID do comentário inválido.' });
-    }
+router.put('/:idComentario', async (req, res) => {
     try {
-        const comentario = await Comentario.findByPk(id);
-        if (!comentario) {
-            return res.status(404).json({ error: 'Comentário não encontrado' });
-        }
-        // Só permite editar o próprio comentário ou se for admin
+        const comentario = await Comentario.findByPk(req.params.idComentario);
+        if (!comentario) return res.status(404).json({ erro: 'Comentário não encontrado' });
+
+        // Só admin ou dono pode editar
         if (req.usuario.perfil !== 'ADMIN' && comentario.idusuario !== req.usuario.id) {
-            return res.status(403).json({ error: 'Acesso negado: só pode alterar seus próprios comentários' });
+            return res.status(403).json({ erro: 'Acesso negado' });
         }
-        comentario.conteudo = conteudo;
+
+        comentario.conteudo = req.body.conteudo || comentario.conteudo;
         await comentario.save();
         res.json(comentario);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao atualizar comentário', details: err.message });
+        res.status(500).json({ erro: 'Erro ao atualizar comentário' });
     }
 });
 
 // Deletar comentário
-router.delete('/:id', async (req, res) => {
-    if (!req.usuario) {
-        return res.status(401).json({ error: 'Não autenticado' });
-    }
-    const comentario = await Comentario.findByPk(req.params.id);
-    if (!comentario) return res.status(404).json({ error: 'Comentário não encontrado' });
+router.delete('/:idComentario', async (req, res) => {
+    try {
+        const comentario = await Comentario.findByPk(req.params.idComentario);
+        if (!comentario) return res.status(404).json({ erro: 'Comentário não encontrado' });
 
-    if (req.usuario.perfil !== 'ADMIN' && comentario.idusuario !== req.usuario.id) {
-        return res.status(403).json({ error: 'Acesso negado: só pode deletar seus próprios comentários' });
+        // Só admin ou dono pode deletar
+        if (req.usuario.perfil !== 'ADMIN' && comentario.idusuario !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        await comentario.destroy();
+        res.json({ msg: 'Comentário deletado' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao deletar comentário' });
     }
-    await comentario.destroy();
-    res.status(204).send();
 });
 
 export default router;

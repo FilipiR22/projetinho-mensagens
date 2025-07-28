@@ -22,10 +22,10 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         let mensagens;
-        if (req.user.perfil === 'ADMIN') {
+        if (req.usuario.perfil === 'ADMIN') {
             mensagens = await Mensagens.findAll();
         } else {
-            mensagens = await Mensagens.findAll({ where: { idusuario: req.user.id } });
+            mensagens = await Mensagens.findAll({ where: { idusuario: req.usuario.id } });
         }
         res.json(mensagens);
     } catch (err) {
@@ -42,37 +42,39 @@ router.get('/:id', async (req, res) => {
 
 // Atualizar mensagem
 router.put('/:id', async (req, res) => {
-    const mensagem = await Mensagens.findByPk(req.params.id);
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
-
-    // ADMIN pode tudo, USER só se for dono
-    if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
-        return res.status(403).json({ error: 'Acesso negado: só pode alterar suas próprias mensagens' });
-    }
-
-    const { titulo, conteudo } = req.body;
-    if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
-        return res.status(400).json({ erro: 'Título e conteúdo não podem ser vazios.' });
-    }
-
     try {
-        await mensagem.update({ conteudo: req.body.conteudo });
+        const mensagem = await Mensagens.findByPk(req.params.id);
+        if (!mensagem) return res.status(404).json({ erro: 'Mensagem não encontrada' });
+
+        // Só admin ou dono pode editar
+        if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        mensagem.conteudo = req.body.conteudo || mensagem.conteudo;
+        await mensagem.save();
         res.json(mensagem);
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao atualizar mensagem', detalhes: error.message });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao atualizar mensagem' });
     }
 });
 
 // Deletar mensagem
-router.delete('/:id', adminMiddleware, async (req, res) => {
-    const mensagem = await Mensagens.findByPk(req.params.id);
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+router.delete('/:id', async (req, res) => {
+    try {
+        const mensagem = await Mensagens.findByPk(req.params.id);
+        if (!mensagem) return res.status(404).json({ erro: 'Mensagem não encontrada' });
 
-    if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
-        return res.status(403).json({ error: 'Acesso negado: só pode deletar suas próprias mensagens' });
+        // Só admin ou dono pode deletar
+        if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
+            return res.status(403).json({ erro: 'Acesso negado' });
+        }
+
+        await mensagem.destroy();
+        res.json({ msg: 'Mensagem deletada' });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao deletar mensagem' });
     }
-    await mensagem.destroy();
-    res.status(204).send();
 });
 
 export default router;

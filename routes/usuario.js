@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
     try {
         const senhaHash = await bcrypt.hash(senha, 10);
         const novoUsuario = await Usuario.create({ nome, email, senha: senhaHash });
-        res.status(201).json(novoUsuario);
+        res.status(201).json('Usuário Criado com Sucesso!');
     } catch (err) {
         res.status(400).json({ error: 'Erro ao cadastrar usuário', detalhes: err.message });
     }

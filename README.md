@@ -72,7 +72,6 @@ API para cadastro de usuários, autenticação, mensagens e comentários, com ge
 - **Body:**
   ```json
   {
-    "titulo": "Primeira mensagem",
     "conteudo": "Olá, mundo!"
   }
   ```
@@ -100,7 +99,6 @@ API para cadastro de usuários, autenticação, mensagens e comentários, com ge
 - **Body:**
   ```json
   {
-    "titulo": "Novo título",
     "conteudo": "Novo conteúdo"
   }
   ```
@@ -165,6 +163,52 @@ API para cadastro de usuários, autenticação, mensagens e comentários, com ge
 - **Descrição:**  
   - Usuário comum só pode deletar seus comentários.
   - Admin pode deletar qualquer comentário.
+
+---
+
+## Como usar o Refresh Token
+
+### 1. Login
+
+Ao fazer login em `/login`, você receberá dois tokens:
+
+```json
+{
+  "token": "SEU_ACCESS_TOKEN",
+  "refreshToken": "SEU_REFRESH_TOKEN"
+}
+```
+
+- Use o `token` (access token) no header `Authorization` para acessar as rotas protegidas.
+- Guarde o `refreshToken` para renovar seu access token quando ele expirar.
+
+---
+
+### 2. Renovar o Access Token
+
+Quando o access token expirar, faça uma requisição:
+
+- **POST** `/login/refresh`
+- **Body:**
+  ```json
+  {
+    "refreshToken": "SEU_REFRESH_TOKEN"
+  }
+  ```
+- **Resposta:**
+  ```json
+  {
+    "token": "NOVO_ACCESS_TOKEN"
+  }
+  ```
+
+Use o novo access token retornado para continuar acessando as rotas protegidas.
+
+---
+
+**Importante:**  
+- O refresh token também expira (veja o tempo em `.env`).
+- Se o refresh token expirar ou for inválido, será necessário fazer login novamente.
 
 ---
 

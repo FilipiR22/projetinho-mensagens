@@ -1,6 +1,6 @@
 import express from 'express';
 import Mensagens from '../models/mensagens.js';
-import { authorizeRole } from '../middlewares/authMiddleware.js';
+import adminMiddleware from '../middlewares/adminMiddleware.js';
 
 const router = express.Router();
 
@@ -21,12 +21,15 @@ router.post('/', async (req, res) => {
 // Listar mensagens do usuário logado
 router.get('/', async (req, res) => {
     try {
-        const mensagensBuscadas = await Mensagens.findAll({ // Renomeado para camelCase
-            where: { idusuario: req.usuario.id },
-        });
-        res.json(mensagensBuscadas);
+        let mensagens;
+        if (req.user.perfil === 'ADMIN') {
+            mensagens = await Mensagens.findAll();
+        } else {
+            mensagens = await Mensagens.findAll({ where: { idusuario: req.user.id } });
+        }
+        res.json(mensagens);
     } catch (err) {
-        res.status(500).json({ error: 'Erro ao buscar mensagens' });
+        res.status(500).json({ erro: 'Erro ao buscar mensagens' });
     }
 });
 
@@ -61,7 +64,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Deletar mensagem
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', adminMiddleware, async (req, res) => {
     const mensagem = await Mensagens.findByPk(req.params.id);
     if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
 

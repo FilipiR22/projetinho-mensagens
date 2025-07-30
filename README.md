@@ -13,7 +13,7 @@ API para cadastro de usuários, autenticação, mensagens e comentários, com ge
 
 2. Inicie o servidor:
    ```bash
-   node server.js
+   npm run dev
    ```
 
 ---

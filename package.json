@@ -5,6 +5,7 @@
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "node": "^20.19.4",
     "sequelize": "^6.37.7",
     "sqlite3": "^5.1.7"
   },
@@ -12,6 +13,7 @@
     "nodemon": "^3.1.10"
   },
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "rebuild": "npm cache clean --force && rmdir /s /q node_modules && del package-lock.json && npm install && npm run dev"
   }
 }

@@ -14,6 +14,7 @@
   },
   "scripts": {
     "dev": "nodemon server.js",
-    "rebuild": "npm cache clean --force && rmdir /s /q node_modules && del package-lock.json && npm install && npm run dev"
+    "rebuild:linux": "npm cache clean --force && rm -rf node_modules package-lock.json && npm install && npm run dev",
+    "rebuild:win": "npm cache clean --force && rmdir /s /q node_modules && del package-lock.json && npm install && npm run dev"
   }
 }

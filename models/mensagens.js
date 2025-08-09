@@ -10,6 +10,10 @@ const Mensagens = sequelize.define('Mensagens', {
         primaryKey: true,
         autoIncrement: true,
     },
+    titulo: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
     conteudo: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -18,6 +22,11 @@ const Mensagens = sequelize.define('Mensagens', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    data_criacao: {
+        type: DataTypes.DATE,
+        allowNull: false,
+        defaultValue: DataTypes.NOW
+    }
 }, {
     timestamps: false,
 });

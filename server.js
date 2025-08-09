@@ -43,7 +43,7 @@ app.use('/auth', authRoutes);
 //     res.sendFile(path.join(__dirname, 'public', 'comentarios.html'));
 // });
 
-const PORT = 3000;
+const PORT = 5000;
 sequelize.sync()
     .then(() => {
         app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

@@ -4,6 +4,39 @@ API para cadastro de usuários, autenticação, mensagens e comentários, com ge
 
 ---
 
+## Comandos de rebuild
+
+Se precisar reconstruir o projeto (por exemplo, após instalar novas dependências nativas ou alterar arquivos de build), utilize um dos comandos abaixo conforme seu sistema operacional:
+
+### Linux
+
+```bash
+npm run rebuild:linux
+```
+
+### Windows
+
+```bash
+npm run rebuild:win
+```
+
+Esses comandos vão limpar o cache, remover dependências antigas e reinstalar tudo do zero, além de iniciar o servidor automaticamente.
+
+Se preferir apenas reconstruir a build (sem reinstalar dependências):
+
+```bash
+npm run build
+```
+
+Para limpar a build antes de reconstruir:
+
+```bash
+rm -rf dist
+npm run build
+```
+
+---
+
 ## Como usar
 
 1. Instale as dependências:

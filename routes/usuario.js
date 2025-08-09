@@ -5,15 +5,24 @@ import Usuario from '../models/usuario.js'; // Adicione a extensão .js para mó
 const router = express.Router();
 
 // Criar usuário
-router.post('/', async (req, res) => {
-    const { nome, email, senha } = req.body;
-
+router.post('/usuario', async (req, res) => {
     try {
-        const senhaHash = await bcrypt.hash(senha, 10);
-        const novoUsuario = await Usuario.create({ nome, email, senha: senhaHash });
-        res.status(201).json('Usuário Criado com Sucesso!');
+        const { nome, email, senha, perfil } = req.body;
+        // Criação do usuário (ajuste conforme seu ORM)
+        const novoUsuario = await Usuario.create({ nome, email, senha, perfil });
+
+        // Retorno ajustado conforme solicitado
+        res.status(201).json({
+            id: novoUsuario.id,
+            nome: novoUsuario.nome,
+            email: novoUsuario.email,
+            perfil: novoUsuario.perfil
+        });
     } catch (err) {
-        res.status(400).json({ error: 'Erro ao cadastrar usuário', detalhes: err.message });
+        if(nome==''||email==''||senha==''){
+            res.status(422).json({"errors": {"email": ["Campo obrigatório."], "senha": ["Campo obrigatório."]}})
+        }
+        res.status(400).json({ erro: err.message });
     }
 });
 

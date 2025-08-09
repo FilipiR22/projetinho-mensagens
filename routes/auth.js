@@ -21,11 +21,12 @@ function generateRefreshToken(user) {
     );
 }
 
-router.post('/', async (req, res) => {
+router.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
         const usuario = await Usuario.findOne({ where: { email } });
         if (!usuario || !(await usuario.checkPassword(senha))) {
+            // Retorno conforme solicitado
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }
         const accessToken = generateAccessToken(usuario);
@@ -52,7 +53,7 @@ router.post('/refresh', async (req, res) => {
     // Verifica se o refresh token existe no banco
     const tokenNoBanco = await RefreshToken.findOne({ where: { token: refreshToken } });
     if (!tokenNoBanco) {
-        return res.status(401).json({ error: 'Refresh token inválido' });
+        return res.status(401).json({ error: 'Refresh token inválido ou ausente' });
     }
 
     try {

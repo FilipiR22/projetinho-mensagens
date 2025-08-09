@@ -29,7 +29,7 @@ app.use('/mensagens/:idmensagem/comentarios', authMiddleware, comentariosRoutes)
 
 // Rotas públicas
 app.use('/usuario', usuarioRoutes);
-app.use('/login', authRoutes);
+app.use('/auth', authRoutes);
 
 // Arquivos estáticos (comentado)
 // const __filename = fileURLToPath(import.meta.url);

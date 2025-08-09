@@ -15,14 +15,14 @@ router.get('/', async (req, res) => {
         // Verifica se a mensagem existe
         const mensagem = await Mensagens.findByPk(idmensagem);
         if (!mensagem) {
-            return res.status(404).json({ error: 'Mensagem não encontrada' });
+            return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
         }
 
         const comentarios = await Comentario.findAll({
             where: { idmensagem },
             order: [['datahora', 'ASC']]
         });
-        res.json(comentarios);
+        res.status(200).json(comentarios);
     } catch (err) {
         res.status(500).json({ error: 'Erro ao buscar comentários', details: err.message });
     }
@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
 // Criar novo comentário
 router.post('/', async (req, res) => {
     if (!req.usuario) {
-        return res.status(401).json({ error: 'Não autenticado' });
+        return res.status(401).json({ error: 'Token JWT ausente ou inválido' });
     }
     const { conteudo } = req.body;
     if (!conteudo || !conteudo.trim()) {
@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
     // Verifica se a mensagem existe
     const mensagem = await Mensagens.findByPk(idmensagem);
     if (!mensagem) {
-        return res.status(404).json({ error: 'Mensagem não encontrada' });
+        return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
     }
 
     try {
@@ -71,11 +71,11 @@ router.post('/', async (req, res) => {
 router.put('/:idComentario', async (req, res) => {
     try {
         const comentario = await Comentario.findByPk(req.params.idComentario);
-        if (!comentario) return res.status(404).json({ erro: 'Comentário não encontrado' });
+        if (!comentario) return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
 
         // Só admin ou dono pode editar
         if (req.usuario.perfil !== 'ADMIN' && comentario.idusuario !== req.usuario.id) {
-            return res.status(403).json({ erro: 'Acesso negado' });
+            return res.status(403).json({ error: 'Você não tem permissão para isso' });
         }
 
         if (!req.body.conteudo || !req.body.conteudo.trim()) {
@@ -84,7 +84,7 @@ router.put('/:idComentario', async (req, res) => {
 
         comentario.conteudo = req.body.conteudo;
         await comentario.save();
-        res.json({
+        res.status(200).json({
             id: comentario.id,
             conteudo: comentario.conteudo,
             usuario_id: comentario.idusuario,
@@ -92,7 +92,7 @@ router.put('/:idComentario', async (req, res) => {
             data_criacao: comentario.datahora
         });
     } catch (err) {
-        res.status(500).json({ erro: 'Erro ao atualizar comentário' });
+        res.status(500).json({ error: 'Erro ao atualizar comentário' });
     }
 });
 
@@ -101,18 +101,18 @@ router.delete('/:idComentario', async (req, res) => {
     try {
         const comentario = await Comentario.findByPk(req.params.idComentario);
         if (!comentario) {
-            return res.status(404).json({ error: 'Comentário não encontrado' });
+            return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
         }
 
         // Só admin ou dono pode deletar
         if (req.usuario.perfil !== 'ADMIN' && comentario.idusuario !== req.usuario.id) {
-            return res.status(403).json({ error: 'Você não tem permissão para excluir este comentário' });
+            return res.status(403).json({ error: 'Você não tem permissão para isso' });
         }
 
         await comentario.destroy();
-        res.json({ msg: 'Comentário deletado' });
+        res.status(204).send();
     } catch (err) {
-        res.status(500).json({ erro: 'Erro ao deletar comentário' });
+        res.status(500).json({ error: 'Erro ao deletar comentário' });
     }
 });
 

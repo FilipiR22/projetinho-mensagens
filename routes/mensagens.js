@@ -1,15 +1,14 @@
 import express from 'express';
 import Mensagens from '../models/mensagens.js';
-import adminMiddleware from '../middlewares/adminMiddleware.js';
-import { autenticarJWT } from './auth.js'; // Certifique-se de exportar o middleware
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // Criar mensagem (qualquer user autenticado)
-router.post('/', autenticarJWT, async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
     const { titulo, conteudo } = req.body;
     if (!titulo || !conteudo || !titulo.trim() || !conteudo.trim()) {
-        return res.status(422).json({ erro: 'Título e conteúdo não podem ser vazios.' });
+        return res.status(422).json({ errors: { titulo: ['Campo obrigatório.'], conteudo: ['Campo obrigatório.'] } });
     }
     try {
         const novaMensagem = await Mensagens.create({
@@ -32,7 +31,7 @@ router.post('/', autenticarJWT, async (req, res) => {
 });
 
 // Listar mensagens do usuário logado
-router.get('/', autenticarJWT, async (req, res) => {
+router.get('/', authMiddleware, async (req, res) => {
     try {
         let mensagens;
         if (req.usuario.perfil === 'ADMIN') {
@@ -40,28 +39,27 @@ router.get('/', autenticarJWT, async (req, res) => {
         } else {
             mensagens = await Mensagens.findAll({ where: { idusuario: req.usuario.id } });
         }
-        res.json(mensagens);
+        res.status(200).json(mensagens);
     } catch (err) {
         res.status(500).json({ erro: 'Erro ao buscar mensagens' });
     }
 });
 
 // Obter uma mensagem específica do usuário
-router.get('/:id', autenticarJWT, async (req, res) => {
+router.get('/:id', authMiddleware, async (req, res) => {
     const mensagem = await Mensagens.findOne({ where: { id: req.params.id, idusuario: req.usuario.id } });
-    if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
-    res.json(mensagem);
+    if (!mensagem) return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
+    res.status(200).json(mensagem);
 });
 
 // Atualizar mensagem (PUT)
-router.put('/:id', autenticarJWT, async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
     try {
         const mensagem = await Mensagens.findByPk(req.params.id);
-        if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+        if (!mensagem) return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
 
-        // Só admin ou dono pode editar
         if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
-            return res.status(403).json({ error: 'Você não tem permissão para alterar esta mensagem' });
+            return res.status(403).json({ error: 'Você não tem permissão para isso' });
         }
 
         if (!req.body.conteudo || !req.body.conteudo.trim()) {
@@ -70,7 +68,7 @@ router.put('/:id', autenticarJWT, async (req, res) => {
 
         mensagem.conteudo = req.body.conteudo;
         await mensagem.save();
-        res.json({
+        res.status(200).json({
             id: mensagem.id,
             titulo: mensagem.titulo,
             conteudo: mensagem.conteudo,
@@ -83,14 +81,13 @@ router.put('/:id', autenticarJWT, async (req, res) => {
 });
 
 // Atualizar mensagem (PATCH)
-router.patch('/:id', autenticarJWT, async (req, res) => {
+router.patch('/:id', authMiddleware, async (req, res) => {
     try {
         const mensagem = await Mensagens.findByPk(req.params.id);
-        if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+        if (!mensagem) return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
 
-        // Só admin ou dono pode editar
         if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
-            return res.status(403).json({ error: 'Você não tem permissão para alterar esta mensagem' });
+            return res.status(403).json({ error: 'Você não tem permissão para isso' });
         }
 
         if ('conteudo' in req.body && (!req.body.conteudo || !req.body.conteudo.trim())) {
@@ -101,7 +98,7 @@ router.patch('/:id', autenticarJWT, async (req, res) => {
         if (req.body.conteudo !== undefined) mensagem.conteudo = req.body.conteudo;
 
         await mensagem.save();
-        res.json({
+        res.status(200).json({
             id: mensagem.id,
             titulo: mensagem.titulo,
             conteudo: mensagem.conteudo,
@@ -114,18 +111,17 @@ router.patch('/:id', autenticarJWT, async (req, res) => {
 });
 
 // Deletar mensagem
-router.delete('/:id', autenticarJWT, async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
         const mensagem = await Mensagens.findByPk(req.params.id);
-        if (!mensagem) return res.status(404).json({ error: 'Mensagem não encontrada' });
+        if (!mensagem) return res.status(404).json({ error: 'Mensagem/Comentário não encontrado' });
 
-        // Só admin ou dono pode deletar
         if (req.usuario.perfil !== 'ADMIN' && mensagem.idusuario !== req.usuario.id) {
-            return res.status(403).json({ error: 'Acesso negado' });
+            return res.status(403).json({ error: 'Você não tem permissão para isso' });
         }
 
         await mensagem.destroy();
-        res.json({ msg: 'Mensagem deletada' });
+        res.status(204).send();
     } catch (err) {
         res.status(500).json({ erro: 'Erro ao deletar mensagem' });
     }

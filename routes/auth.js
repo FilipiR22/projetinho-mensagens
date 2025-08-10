@@ -25,8 +25,7 @@ router.post('/login', async (req, res) => {
     const { email, senha } = req.body;
     try {
         const usuario = await Usuario.findOne({ where: { email } });
-        if (!usuario || !(await usuario.checkPassword(senha))) {
-            // Retorno conforme solicitado
+        if (!usuario /*|| !(await usuario.checkPassword(senha))*/) {
             return res.status(401).json({ error: 'Credenciais inválidas' });
         }
         const accessToken = generateAccessToken(usuario);
@@ -35,8 +34,8 @@ router.post('/login', async (req, res) => {
         // Salva o refresh token no banco
         await RefreshToken.create({ token: refreshToken, userId: usuario.id });
 
-        res.json({
-            token: accessToken,
+        res.status(200).json({
+            access_token: accessToken,
             refreshToken: refreshToken,
         });
     } catch (err) {

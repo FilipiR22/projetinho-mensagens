@@ -27,7 +27,7 @@ app.use('/mensagens', authMiddleware, mensagemRoutes);
 app.use('/mensagens/:idmensagem/comentarios', authMiddleware, comentariosRoutes);
 
 // Rotas públicas
-app.use('/usuario', usuarioRoutes);
+app.use('/usuarios', usuarioRoutes);
 app.use('/auth', authRoutes);
 
 // Arquivos estáticos (comentado)

@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 export default function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    if (!authHeader|| !authHeader.startsWith('Bearer ') ||authHeader==undefined) {
         return res.status(401).json({ error: 'Token JWT ausente ou inválido' });
     }
 

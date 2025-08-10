@@ -65,6 +65,9 @@ router.put('/:id', authMiddleware, async (req, res) => {
         if (!req.body.conteudo || !req.body.conteudo.trim()) {
             return res.status(422).json({ errors: { conteudo: ['Campo obrigatório.'] } });
         }
+        if (!req.body.titulo || !req.body.titulo.trim()) {
+            return res.status(422).json({ errors: { titulo: ['Campo obrigatório.'] } });
+        }
 
         mensagem.conteudo = req.body.conteudo;
         await mensagem.save();

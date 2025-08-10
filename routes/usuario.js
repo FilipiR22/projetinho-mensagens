@@ -5,7 +5,7 @@ import Usuario from '../models/usuario.js';
 const router = express.Router();
 
 // Criar usuário
-router.post('/usuario', async (req, res) => {
+router.post('/', async (req, res) => {
     try {
         const { nome, email, senha, perfil } = req.body;
         if (!nome || !email || !senha) {
